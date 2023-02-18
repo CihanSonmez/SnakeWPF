@@ -23,6 +23,9 @@ namespace SnakeWPF
         private int snakeLength;
         private int currentScore = 0;
 
+        private bool isGameStarted = false;
+        private bool isGamePaused = false;
+
         private Random rnd = new Random();
 
         private UIElement snakeFood = null;
@@ -156,6 +159,8 @@ namespace SnakeWPF
 
         private void StartNewGame()
         {
+            isGameStarted = true;
+
             bdrWelcomeMessage.Visibility = Visibility.Collapsed;
             bdrEndOfGame.Visibility = Visibility.Collapsed;
 
@@ -220,6 +225,7 @@ namespace SnakeWPF
         private void Window_KeyUp(object sender, KeyEventArgs e)
         {
             SnakeDirection originalSnakeDirection = snakeDirection;
+
             switch (e.Key)
             {
                 case Key.Up:
@@ -239,11 +245,42 @@ namespace SnakeWPF
                         snakeDirection = SnakeDirection.Right;
                     break;
                 case Key.Space:
-                    StartNewGame();
+
+                    if (isGameStarted)
+                    {
+                        if (isGamePaused)
+                            ResumeGame();
+                        else
+                            PauseGame();
+                    }
+                    else
+                    {
+                        StartNewGame();
+                    }
+
                     break;
             }
-            if (snakeDirection != originalSnakeDirection)
+
+            if (isGameStarted && !isGamePaused && snakeDirection != originalSnakeDirection)
                 MoveSnake();
+
+        }
+
+        private void PauseGame()
+        {
+            isGamePaused = true;
+            gameTickTimer.IsEnabled = false;
+
+            bdrPauseGame.Visibility = Visibility.Visible;
+
+        }
+
+        private void ResumeGame()
+        {
+            isGamePaused = false;
+            gameTickTimer.IsEnabled = true;
+
+            bdrPauseGame.Visibility = Visibility.Collapsed;
         }
 
         private void DoCollisionCheck()
@@ -282,6 +319,7 @@ namespace SnakeWPF
 
         private void EndGame()
         {
+            isGameStarted = false;
             tbFinalScore.Text = currentScore.ToString();
             bdrEndOfGame.Visibility = Visibility.Visible;
             gameTickTimer.IsEnabled = false;
